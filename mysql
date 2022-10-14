@@ -1,0 +1,75 @@
+use sales;			
+select * from sales;			
+-- Validating best attributes for analysis	
+select distinct status from sales;			
+select distinct year_id from sales;			
+select distinct productline from sales;			
+select distinct city from sales;			
+select distinct country from sales;			
+select distinct dealsize from sales;			
+select distinct territory from sales;			
+			
+-- ANALYSIS
+-- grouping sales by productline		
+select productline, sum(sales) revenue		
+from sales			
+group by productline			
+order by 2 desc;			
+			
+-- grouping sales by year			
+select year_id, sum(sales) revenue		
+from sales			
+group by year_id			
+order by 2 desc;			
+			
+-- find out operating months in each year			
+select year_id, count(distinct(month_id)) from sales		
+group by year_id;			
+			
+-- find out best year and month based on revenue			
+			
+select year_id	, month_id,	productline, max(revenue) as Maximum_revenue_in_year
+from (select year_id,month_id,productline, sum(sales) as revenue
+from sales			
+group by month_id) as x			
+group by year_id;			
+			
+-- find out the best month for sales in a specific year? How much was earned that month? 			
+select month_id	, productline, max(sales) as Max_revenue	
+from sales			
+where year_id=2004			
+group by month_id, productline		
+order by 3 desc;			
+			
+-- find out best customer based on RFM ( Recency, Frequency and Monetaize)		
+with rfm as 
+( 
+select customername,count(ordernumber) as frequency, sum(sales) as monetaize, max(orderdate) as last_purchased,
+datediff((select max(orderdate) from sales),max(orderdate)) recency
+from sales
+group by customername
+)
+select rfm.*,
+ntile(4) over(order by recency desc) as rank_recency,
+ntile(4) over(order by frequency) as rank_frequency,
+ntile(4) over(order by monetaize) as rank_Money
+from rfm;
+
+-- What city has the highest number of sales in a specific country
+select city, sum(sales) Revenue
+from sales
+where country = 'UK'
+group by city
+order by 2 desc;
+
+
+
+-- What is the best product in United States?
+select country, YEAR_ID, PRODUCTLINE, sum(sales) Revenue
+from sales
+where country = 'USA'
+group by  country, YEAR_ID, PRODUCTLINE
+order by 4 desc;
+			
+		
+	
